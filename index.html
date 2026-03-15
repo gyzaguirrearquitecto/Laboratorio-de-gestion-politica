@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboratorio de Gestión Legislativa - Programa de Apoyo a Candidaturas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --secondary: #dc2626;
+            --background: #f8fafc;
+            --text: #334155;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Merriweather', serif;
+        }
+
+        .hero-gradient {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #1d4ed8 100%);
+        }
+
+        .proposal-card {
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+            cursor: pointer;
+        }
+
+        .proposal-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid var(--secondary);
+        }
+
+        .proposal-card.selected {
+            border-left: 4px solid var(--primary);
+            background-color: #eff6ff;
+        }
+
+        .filter-btn {
+            transition: all 0.2s ease;
+        }
+
+        .filter-btn.active {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .category-senador {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+
+        .category-diputado {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .category-andino {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .whatsapp-btn {
+            background-color: #25D366;
+        }
+
+        .whatsapp-btn:hover {
+            background-color: #128C7E;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            max-width: 700px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Floating Bar */
+        .floating-bar {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e3a8a;
+            color: white;
+            padding: 16px 32px;
+            border-radius: 50px;
+            display: none;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 10px 40px rgba(30, 58, 138, 0.4);
+            z-index: 100;
+        }
+
+        .floating-bar.active {
+            display: flex;
+        }
+
+        /* Checkbox custom */
+        .custom-checkbox {
+            width: 22px;
+            height: 22px;
+            border: 2px solid #d1d5db;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .custom-checkbox:hover {
+            border-color: var(--primary);
+        }
+
+        .custom-checkbox.checked {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .custom-checkbox svg {
+            display: none;
+            color: white;
+        }
+
+        .custom-checkbox.checked svg {
+            display: block;
+        }
+
+        /* Section headers in modal */
+        .section-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .section-theoretical {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+
+        .section-normative {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .section-benefits {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col pb-20">
+    <!-- Header -->
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-blue-900 rounded-lg flex items-center justify-center">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-blue-900">Laboratorio de Gestión Legislativa</h1>
+                        <p class="text-xs text-gray-500">Programa de Apoyo a Candidaturas</p>
+                    </div>
+                </div>
+                <nav class="hidden md:flex space-x-8">
+                    <a href="#inicio" class="text-gray-700 hover:text-blue-900 font-medium transition">Inicio</a>
+                    <a href="#propuestas" class="text-gray-700 hover:text-blue-900 font-medium transition">Propuestas</a>
+                    <a href="#contacto" class="text-gray-700 hover:text-blue-900 font-medium transition">Contacto</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="inicio" class="hero-gradient text-white py-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-4xl md:text-5xl font-bold mb-6 leading-tight">
+                Transformemos las propuestas políticas en proyectos concretos y viables
+            </h2>
+            <p class="text-xl md:text-2xl mb-8 text-blue-100">
+                Propuestas especializadas para el desarrollo social
+            </p>
+            <a href="#propuestas" class="inline-block bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-8 rounded-full transition transform hover:scale-105">
+                Explorar Propuestas
+            </a>
+        </div>
+    </section>
+
+    <!-- Filter Section -->
+    <section class="bg-white shadow-sm py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex flex-wrap justify-center gap-3">
+                    <button class="filter-btn active px-6 py-2 rounded-full border-2 border-gray-300 font-medium" data-filter="all">
+                        Ver Todo
+                    </button>
+                    <button class="filter-btn px-6 py-2 rounded-full border-2 border-gray-300 font-medium" data-filter="senador">
+                        Candidatos a Senador
+                    </button>
+                    <button class="filter-btn px-6 py-2 rounded-full border-2 border-gray-300 font-medium" data-filter="diputado">
+                        Candidatos a Diputado
+                    </button>
+                    <button class="filter-btn px-6 py-2 rounded-full border-2 border-gray-300 font-medium" data-filter="andino">
+                        Parlamento Andino
+                    </button>
+                </div>
+                <div class="relative w-full md:w-64">
+                    <input type="text" id="searchInput" placeholder="Buscar propuestas..."
+                           class="w-full px-4 py-2 pl-10 border border-gray-300 rounded-full focus:outline-none focus:border-blue-900">
+                    <svg class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Proposals Grid -->
+    <section id="propuestas" class="py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h3 class="text-3xl font-bold text-gray-900 mb-4">Nuestras Propuestas</h3>
+                <p class="text-gray-600 max-w-2xl mx-auto">
+                    Selecciona las propuestas de tu interés para construir tu propuesta general. Haz clic en cada tarjeta para ver los detalles.
+                </p>
+            </div>
+
+            <div id="proposalsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Cards will be inserted by JavaScript -->
+            </div>
+
+            <div id="noResults" class="text-center py-12 hidden">
+                <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <p class="text-gray-500 text-lg">No se encontraron propuestas que coincidan con tu búsqueda</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Floating Selection Bar -->
+    <div id="floatingBar" class="floating-bar">
+        <span id="selectedCount" class="font-semibold">0 propuestas seleccionadas</span>
+        <button id="sendWhatsApp" class="whatsapp-btn text-white font-semibold py-2 px-6 rounded-full flex items-center gap-2 transition">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+            </svg>
+            Enviar por WhatsApp
+        </button>
+        <button id="clearSelection" class="bg-white/20 hover:bg-white/30 text-white font-semibold py-2 px-4 rounded-full transition">
+            Limpiar
+        </button>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="p-6 border-b border-gray-200 flex justify-between items-start">
+                <div>
+                    <span id="modalCategory" class="px-3 py-1 rounded-full text-xs font-medium category-senador">Senador</span>
+                    <h3 id="modalTitle" class="text-2xl font-bold text-gray-900 mt-3">Título de la Propuesta</h3>
+                </div>
+                <button id="closeModal" class="text-gray-400 hover:text-gray-600 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="p-6 space-y-6">
+                <div id="modalDescription" class="text-gray-600 mb-4">
+                    Descripción breve de la propuesta
+                </div>
+
+                <!-- Theoretical Foundation -->
+                <div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="section-icon section-theoretical">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                            </svg>
+                        </div>
+                        <h4 class="text-lg font-semibold text-gray-900">Fundamentación Teórica</h4>
+                    </div>
+                    <p id="modalTheoretical" class="text-gray-600 pl-13 ml-13">
+                        Contenido teórico sobre la propuesta...
+                    </p>
+                </div>
+
+                <!-- Normative Framework -->
+                <div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="section-icon section-normative">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/>
+                            </svg>
+                        </div>
+                        <h4 class="text-lg font-semibold text-gray-900">Marco Normativo</h4>
+                    </div>
+                    <p id="modalNormative" class="text-gray-600 pl-13 ml-13">
+                        Marco legal y normativo aplicable...
+                    </p>
+                </div>
+
+                <!-- Benefits -->
+                <div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="section-icon section-benefits">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <h4 class="text-lg font-semibold text-gray-900">Beneficios</h4>
+                    </div>
+                    <p id="modalBenefits" class="text-gray-600 pl-13 ml-13">
+                        Beneficios e impactos de la propuesta...
+                    </p>
+                </div>
+            </div>
+            <div class="p-6 border-t border-gray-200 flex justify-between items-center">
+                <button id="toggleSelection" class="flex items-center gap-2 text-blue-900 font-semibold hover:text-blue-700 transition">
+                    <div class="custom-checkbox" id="modalCheckbox">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </div>
+                    <span id="selectionText">Seleccionar esta propuesta</span>
+                </button>
+                <button id="closeModalBtn" class="px-6 py-2 border border-gray-300 rounded-full text-gray-700 hover:bg-gray-50 transition">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h4 class="text-xl font-bold mb-4">Laboratorio de Gestión Legislativa</h4>
+                    <p class="text-gray-400 mb-2">Programa de Apoyo a Candidaturas</p>
+                    <p class="text-sm text-gray-500 mt-4">
+                        Transformamos ideas políticas en proyectos concretos y viables para el desarrollo social del Perú.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="text-xl font-bold mb-4">Contacto</h4>
+                    <div class="space-y-3">
+                        <a href="/cdn-cgi/l/email-protection#2c4b55564d4b59455e5e49024d5e5d594558494f58436c4b414d4540024f4341" class="flex items-center space-x-3 text-gray-300 hover:text-white transition">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                            <span><span class="__cf_email__" data-cfemail="86e1fffce7e1e1f3eff4f4e3a8e7f4f7f3eff2e3e5f2e9c6e1ebe7efeaa8e5e9eb">[email&#160;protected]</span></span>
+                        </a>
+                        <a href="https://wa.me/51980736087?text=Hola,%20me%20interesa%20conocer%20más%20sobre%20las%20propuestas%20de%20desarrollo%20social"
+                           target="_blank"
+                           class="whatsapp-btn flex items-center space-x-3 text-white py-2 px-4 rounded-lg transition">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                            </svg>
+                            <span>WhatsApp: 980 736 087</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center">
+                <p class="text-gray-500">© 2026 Arquitecto Eduardo García Yzaguirre</p>
+            </div>
+        </div>
+    </footer>
+
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+        // Proposals data with detailed information
+        const proposals = [
+            // Senator Proposals (1-33)
+            { id: 1, category: "senador", title: "Diseño de planes nacionales de vivienda social", description: "Propuestas para reducción de déficits habitacionales con análisis demográfico GIS y viabilidad económica.", theoretical: "La vivienda social constituye un pilar fundamental del desarrollo urbano sostenible. Este plan se fundamenta en modelos exitosos de países como Finlandia, Alemania y Singapur, donde la intervención estatal en vivienda ha demostrado reducir significativamente la informalidad urbana y mejorar la calidad de vida de las familias de menores recursos.", normative: "Marco Legal: Constitución Política del Perú (Art. 2, 72), Ley N° 29090 - Ley de Regulación de Habilitaciones Urbanas y de Edificaciones, D.S. N° 012-2019-VIVIENDA - Política Nacional de Vivienda y Urbanismo, Lineamientos del MVCS para programas de vivienda social.", benefits: "Reducción del déficit habitacional en un 30% en 5 años. Generación de 50,000 empleos directos en construcción. Disminución de la informalidad urbana en un 25%. Mejora de la calidad de vida de 200,000 familias. Incremento de la recaudación tributaria municipal." },
+            { id: 2, category: "senador", title: "Proyectos urbanísticos para regiones vulnerables", description: "Elaboración para Amazonía o sierra con estudios de impacto regional y normativas MVCS.", theoretical: "El desarrollo urbano en zonas rurales y de frontera requiere un enfoque integral que considere las particularidades geográficas, culturales y económicas de cada región. La planificación territorial participativa permite identificar las necesidades específicas de cada comunidad.", normative: "Ley N° 27972 - Ley Orgánica de Municipalidades, Ley N° 28296 - Ley General del Patrimonio Cultural, D.S. N° 004-2011-AG - Estrategia Nacional de Desarrollo Rural, Planes de Ordenamiento Territorial departamentales.", benefits: "Mejoramiento de la calidad de vida de poblaciones rurales. Preservación de ecosistemas amazónicos y altoandinos. Desarrollo económico local sostenible. Reducción de la migración rural-urbana. Fortalecimiento de la identidad cultural regional." },
+            { id: 3, category: "senador", title: "Análisis de impacto ambiental urbano", description: "Evaluaciones EIA con software especializado para leyes nacionales de desarrollo urbano.", theoretical: "Las evaluaciones de impacto ambiental (EIA) constituyen herramientas esenciales para el desarrollo sostenible. La metodología se basa en la identificación, predicción e interpretación de los impactos ambientales antes de la ejecución de proyectos.", normative: "Ley N° 27446 - Ley del Sistema Nacional de Evaluación de Impacto Ambiental, D.S. N° 019-2009-MINAM - Reglamento de la Ley del SEIA, Ley N° 28221 - Ley que regula el derecho a la consulta previa, ISO 14001:2015 - Sistemas de Gestión Ambiental.", benefits: "Prevención de daños ambientales irreversibles. Cumplimiento de compromisos internacionales de cambio climático. Protección de la biodiversidad y servicios ecosistémicos. Mejora de la salud pública urbana. Optimización del uso de recursos naturales." },
+            { id: 4, category: "senador", title: "Consultoría en normativas de construcción", description: "Interpretación RNE para plataformas senatoriales en reformas legislativas.", theoretical: "El Reglamento Nacional de Edificaciones (RNE) establece los parámetros técnicos mínimos para el diseño y construcción de edificaciones en el Perú. Su correcta aplicación garantiza la seguridad estructural y la habitabilidad de los espacios.", normative: "D.S. N° 011-2006-VIVIENDA - Reglamento Nacional de Edificaciones, Ley N° 29090 - Ley de Regulación de Habilitaciones Urbanas y Edificaciones, NTE E.030 - Diseño Sismorresistente, NTE E.050 - Suelos y Cimentaciones.", benefits: "Garantía de seguridad estructural en edificaciones. Reducción de riesgos ante desastres naturales. Estandarización de procesos constructivos. Facilitación de trámites de разрешение municipal. Mejora de la calidad constructiva nacional." },
+            { id: 5, category: "senador", title: "Renders 3D para infraestructuras nacionales", description: "Modelado profesional para visualización de carreteras interregionales en campañas visuales.", theoretical: "La visualización 3D permite comunicar de manera efectiva proyectos de infraestructura a diferentes públicos. Esta herramienta facilita la comprensión del alcance y beneficios de las obras públicas.", normative: "Manual de Diseño Geométrico de Carreteras (DG-2018), Normas técnicas de representación gráfica INFOCARTO, Estándares de visualización urbana UNESCO.", benefits: "Mejor comunicación de proyectos a la ciudadanía. Facilitación de la aprobación de proyectos. Reducción de conflictos sociales. Atracción de inversión pública y privada. Democratización del acceso a información de proyectos." },
+            { id: 6, category: "senador", title: "Viabilidad técnica para ciudades sostenibles", description: "Cálculos financieros y técnicos para iniciativas a nivel país.", theoretical: "Los estudios de viabilidad técnica evalúan la sustentabilidad de proyectos urbanos considerando factores económicos, sociales, ambientales y técnicos. La metodología se basa en análisis multicriterio.", normative: "Agenda 2030 - Objetivos de Desarrollo Sostenible, Ley N° 28611 - Ley General del Ambiente, Política Nacional de Desarrollo Urbano, Ley N° 28256 - Ley de Control de Precedentes de Inversión.", benefits: "Optimización de recursos públicos. Reducción de riesgos en inversión. Garantía de sustentabilidad de proyectos. Mejora de la calidad de vida urbana. Contribución a la carbono-neutralidad." },
+            { id: 7, category: "senador", title: "Diseño de espacios públicos nacionales", description: "Parques emblemáticos con integración a políticas ambientales.", theoretical: "Los espacios públicos son elementos fundamentales del tejido urbano. Su diseño debe promover la inclusión, la seguridad y la sostenibilidad ambiental, siguiendo principios de arquitectura del paisaje.", normative: "Manual de Espacios Públicos Urbanos - MVCS, Guía de Diseño de Áreas Verdes Urbanas, Ley N° 30021 - Ley de Promoción de la Alimentación Saludable, Normas de accesibilidad universal.", benefits: "Incremento de la calidad ambiental urbana. Mejora de la salud física y mental ciudadana. Fortalecimiento del tejido social. Incremento del valor de propiedades cercanas. Reducción de la huella de carbono." },
+            { id: 8, category: "senador", title: "Auditoría de accesibilidad urbana", description: "Análisis con estándares internacionales en regiones clave para inclusión social.", theoretical: "La accesibilidad urbana garantiza que todas las personas, independientemente de sus capacidades, puedan acceder y utilizar los espacios públicos y servicios de la ciudad.", normative: "Ley N° 29973 - Ley General de la Persona con Discapacidad, D.S. N° 002-2014-MIMP - Plan Nacional de Accesibilidad, Norma A.120 - Accesibilidad Universal en Edificaciones, Convención sobre los Derechos de las Personas con Discapacidad.", benefits: "Inclusión social de personas con discapacidad. Mejora de la movilidad para adultos mayores. Incremento de la autonomía de personas con movilidad reducida. Cumplimiento de obligaciones internacionales. Optimización del espacio público para todos." },
+            { id: 9, category: "senador", title: "Planificación de rutas de transporte sostenible", description: "GIS para optimización logística en corredores nacionales.", theoretical: "La planificación del transporte sostenible busca reducir emisiones de gases de efecto invernadero, disminuir la congestión vehicular y mejorar la calidad de vida urbana mediante sistemas integrados de movilidad.", normative: "Ley N° 27181 - Ley de Transporte y Seguridad Vial, Plan Nacional de Competitividad, Política Nacional de Transporte Sostenible, D.S. N° 004-2019-MTC -Plan Nacional de Seguridad Vial.", benefits: "Reducción de emisiones de CO2 en un 40%. Disminución de tiempos de desplazamiento. Mejora de la salud pública urbana. Ahorro de combustible y costos de transporte. Integración social y territorial." },
+            { id: 10, category: "senador", title: "Informes técnicos sobre patrimonio cultural", description: "Investigación histórica con datos MINCUL para agendas nacionales.", theoretical: "La protección del patrimonio cultural requiere estudios técnicos que documenten, evalúen y propongan medidas de conservación para bienes culturales tangibles e intangibles.", normative: "Ley N° 28296 - Ley General del Patrimonio Cultural, D.S. N° 011-2013-ED - Reglamento de la Ley del Patrimonio Cultural, Ley N° 29565 - Ley de Creación del MINCUL, Convención UNESCO 1972.", benefits: "Preservación de la identidad nacional. Desarrollo del turismo cultural sostenible. Generación de empleo en conservación. Valorización de bienes patrimoniales. Educación patrimonial para nuevas generaciones." },
+            { id: 11, category: "senador", title: "Diseño gráfico de mapas urbanos", description: "Infografías para propuestas de zonificación nacional y planes de gobierno.", theoretical: "La cartografía urbana permite visualizar y comunicar de manera efectiva la planificación territorial, facilitando la comprensión de ciudadanos y tomadores de decisiones.", normative: "Estándares de Cartografía Digital - IGN, Ley N° 28294 - Sistema Nacional de Información Cultural, Normas técnicas de representación geográfica.", benefits: "Mejor comprensión de planes urbanos. Facilitación de la participación ciudadana. Apoyo a la toma de decisiones. Democratización de información pública. Optimización de recursos de planificación." },
+            { id: 12, category: "senador", title: "Eficiencia energética en edificios públicos", description: "Simulaciones con software para edificios públicos federales.", theoretical: "La eficiencia energética en edificaciones busca minimizar el consumo de energía mediante diseño pasivo, sistemas eficientes y energías renovables, contribuyendo a la sostenibilidad ambiental.", normative: "Ley N° 29151 - Ley General del Sistema Nacional de Bienes Estatales, Norma EM.010 - Eficiencia Energética en edificaciones, Código Técnico de Construcción Sostenible, LEED - Leadership in Energy and Environmental Design.", benefits: "Reducción del consumo energético en un 35%. Ahorro en costos operativos. Contribución a metas de carbono-neutralidad. Mejora del confort de usuarios. Ejemplo de buenas prácticas para el sector privado." },
+            { id: 13, category: "senador", title: "Análisis de densidad poblacional", description: "Datos INEI procesados para estrategias de migración interna.", theoretical: "El análisis demográfico permite comprender los patrones de distribución poblacional y migración, información esencial para la planificación urbana y regional.", normative: "Censo Nacional de Población y Vivienda - INEI, Ley N° 27795 - Ley de Demarcación Territorial, Política Nacional de Población, Plan Estratégico Nacional de Desarrollo Estadístico.", benefits: "Planificación urbana basada en evidencia. Optimización de servicios públicos. Predicción de demanda de vivienda. Ordenamiento territorial sostenible. Políticas públicas efectivas." },
+            { id: 14, category: "senador", title: "Rehabilitación de barrios marginales", description: "Diseños inclusivos con enfoque social a escala regional.", theoretical: "La rehabilitación de barrios marginales busca mejorar las condiciones de vida de poblaciones vulnerables mediante intervenciones integrales que consideran aspectos físicos, sociales y económicos.", normative: "Ley N° 29415 - Ley de Habilitación Urbana, Programa de Mejoramiento de Barrios, D.S. N° 004-2011-VIVIENDA - Plan de Incentivos a la Mejora de la Gestión Municipal.", benefits: "Mejora de condiciones de vida de 100,000 familias. Reducción de índices de criminalidad. Incremento de plusvalía urbana. Integración social y urbana. Desarrollo económico local." },
+            { id: 15, category: "senador", title: "Modelado BIM para infraestructuras", description: "Colaboración digital avanzada para aeropuertos y obras nacionales.", theoretical: "Building Information Modeling (BIM) es una metodología de trabajo colaborativa para la gestión de proyectos de construcción que permite visualizar, simular y optimizar todas las fases del proyecto.", normative: "Plan BIM Peruano - Ministerios, ISO 19650 - Gestión de la información en la construcción, D.S. N° 052-2019-PCM - Transformación Digital.", benefits: "Reducción de costos de construcción en un 20%. Disminución de errores y reformuladores. Mejora de coordinación entre especialidades. Optimización de mantenimiento de obras. Trazabilidad completa del proyecto." },
+            { id: 16, category: "senador", title: "Evaluación de riesgos sísmicos", description: "Estudios geológicos especializados para leyes de construcción antisísmica.", theoretical: "La evaluación de riesgos sísmicos permite identificar zonas de vulnerabilidad y establecer medidas de mitigación para reducir el riesgo sísmico en edificaciones e infraestructuras.", normative: "NTE E.030 - Diseño Sismorresistente, NTE E.050 - Suelos y Cimentaciones, Ley del Sistema Nacional de Gestión del Riesgo de Desastres, D.S. N° 048-2011-PCM.", benefits: "Reducción de victimas por sismos. Protección del patrimonio edificado. Planificación urbana segura. Reducción de pérdidas económicas. Tranquilidad ciudadana." },
+            { id: 17, category: "senador", title: "Diseño de parques nacionales", description: "Áreas verdes con paisajismo ecológico para políticas ambientales.", theoretical: "El diseño de parques nacionales integra principios de ecología del paisaje, conservación de biodiversity y acceso público para crear espacios naturales protegidos y recreationales.", normative: "Ley N° 26834 - Ley de Áreas Naturales Protegidas, D.S. N° 038-2001-AG - Reglamento de Áreas Naturales Protegidas, Plan Director de Áreas Naturales Protegidas, Objetivos de Desarrollo Sostenible - ODS 15.", benefits: "Conservación de biodiversity. Regulación del clima urbano. Protección de fuentes de agua. Educación ambiental. Turismo sostenible." },
+            { id: 18, category: "senador", title: "Consultoría en movilidad urbana", description: "Modelos de flujo nacional para reducir congestión en megalópolis.", theoretical: "Los modelos de flujo vehicular permiten simular y optimizar el tráfico urbano, identificando cuellos de botella y proponiendo soluciones de ingeniería de transporte.", normative: "Ley N° 27181 - Ley de Transporte y Seguridad Vial, Plan Maestro de Transporte Urbano, Manual de Capacidad de Carreteras HCM, Normas de señalización vial.", benefits: "Reducción de tiempos de viaje en un 30%. Disminución de emisiones contaminantes. Mejora de la seguridad vial. Optimización de infraestructura existente. Mejora de la productividad económica." },
+            { id: 19, category: "senador", title: "Planes maestros para regiones económicas", description: "Visión estratégica integral para desarrollo regional.", theoretical: "Los planes maestros son documentos de planificación estratégica que establecen la visión de desarrollo a largo plazo de una región, considerando aspectos económicos, sociales y territoriales.", normative: "Ley N° 28059 - Ley Marco de Promoción de la Inversión Descentralizada, Planes de Desarrollo Concertado regionales, Ley N° 28273 - Sistema Nacional de Inversión Pública.", benefits: "Coordinación de inversiones públicas. Atracción de inversión privada. Desarrollo económico regional equilibrado. Creación de empleo sostenible. Mejora de competitividad regional." },
+            { id: 20, category: "senador", title: "Análisis de uso de suelo", description: "Zonificación con GIS para reformas agrarias nacionales.", theoretical: "El análisis de uso de suelo permite identificar la capacidad óptima de uso del territorio, información fundamental para la planificación agraria y el ordenamiento territorial.", normative: "Ley N° 28221 - Ley de Reforma Agraria, D.S. N° 057-2008-AG - Uso Mayor de Suelos, Catastro Rural, Sistema Nacional de Información Agraria.", benefits: "Optimización de la producción agrícola. Protección de suelos agrícolas. Desarrollo rural sostenible. Seguridad alimentaria. Mejora de ingresos de agricultores." },
+            { id: 21, category: "senador", title: "Diseño de instalaciones deportivas", description: "Infraestructuras olímpicas para programas nacionales de recreational.", theoretical: "El diseño de instalaciones deportivas debe considerar estándares internacionales, accesibilidad universal y sostenibilidad ambiental para promover la actividad física masiva.", normative: "Normativa COPEJ, Manual de Infraestructura Deportiva, Ley N° 28036 - Ley de Juventud, Normas FIFA para estadios, Guía técnica de instalaciones deportivas.", benefits: "Promoción de salud pública. Detección de talentos deportivos. Desarrollo del turismo deportivo. Generación de empleo. Inclusión social a través del deporte." },
+            { id: 22, category: "senador", title: "Estudios de impacto vial", description: "Análisis tráfico avanzado para proyectos de autopistas interprovinciales.", theoretical: "Los estudios de impacto vial evalúan los efectos del tráfico generado por nuevos desarrollos urbanos sobre la infraestructura existente y proponen medidas de mitigación.", normative: "Manual de Estudios de Tráfico, NTE E.030 - Diseño Sismorresistente para puentes, Ley N° 27181 - Transporte y Seguridad Vial, Normas de diseño vial.", benefits: "Seguridad vial mejorada. Protección de inversiones públicas. Reducción de costos de mantenimiento vial. Mejora de fluidez del tráfico. Desarrollo económico regional." },
+            { id: 23, category: "senador", title: "Arquitectura bioclimática", description: "Adaptaciones regionales para diversas condiciones climáticas.", theoretical: "La arquitectura bioclimática aprovecha las condiciones climáticas locales para diseñar edificaciones thermally comfortable y energeticamente eficientes, reduciendo la dependencia de sistemas mecánicos.", normative: "Norma EM.010 - Eficiencia Energética, Código Técnico de Construcción Sostenible, Certificación EDGE - IFC, Ley N° 28611 - Ley General del Ambiente.", benefits: "Reducción del consumo energético en un 50%. Mejora del confort térmico. Disminución de emisiones de CO2. Reducción de costos operativos. Adaptación al cambio climático." },
+            { id: 24, category: "senador", title: "Vivienda asequible con enfoque de género", description: "Diseños inclusivos con perspectiva de equidad.", theoretical: "La vivienda asequible con enfoque de género considera las necesidades específicas de diferentes configuraciones familiares, promoviendo la equidad y la prevención de violencia de género.", normative: "Ley N° 30364 - Ley para Prevenir, Sancionar y Erradicar la Violencia contra las Mujeres, Política Nacional de Vivienda, Ley N° 29973 - Ley General de la Persona con Discapacidad.", benefits: "Prevención de violencia de género. Inclusión de personas con discapacidad. Adaptación a nuevas formas familiares. Mejora de calidad de vida. Desarrollo urbano inclusivo." },
+            { id: 25, category: "senador", title: "Patrimonio arquitectónico", description: "Inventarios históricos para conservación nacional.", theoretical: "El inventario del patrimonio arquitectónico permite identificar, documentar y proteger los edificios históricos que constituyen la memoria colectiva de la nación.", normative: "Ley N° 28296 - Ley General del Patrimonio Cultural, D.S. N° 011-2013-ED, Convención de La Haya 1954, Ley N° 29065 - Ley de descentralización de competencias.", benefits: "Preservación de la identidad cultural. Desarrollo del turismo patrimonial. Generación de economía naranja. Educación patrimonial. Mejora de la imagen urbana." },
+            { id: 26, category: "senador", title: "Diseño de centros comunitarios", description: "Espacios multifuncionales para campañas regionales.", theoretical: "Los centros comunitarios son espacios de encuentro social que promueven la cohesión comunitaria y ofrecen servicios básicos a la población local.", normative: "Normativa de equipamiento urbano, Ley N° 27783 - Ley de Bases de Descentralización, Manual de Diseño de Espacios Comunitarios, ODS 11 - Ciudades sostenibles.", benefits: "Cohesión social comunitaria. Acceso a servicios básicos. Desarrollo de actividades culturales. Fortalecimiento de la democracia local. Reducción de brechas sociales." },
+            { id: 27, category: "senador", title: "Evaluación de infraestructuras", description: "Auditorías técnicas para mejoras nacionales.", theoretical: "Las auditorías técnicas evalúan el estado de conservación de infraestructuras existentes, identificando deficiencias y priorizando intervenciones de mantenimiento.", normative: "Ley N° 28221 - Sistema Nacional de Inversión Pública, Normas técnicas de evaluación de infraestructuras, Manual de Gestión de Activos de Infraestructura.", benefits: "Optimización de recursos de mantenimiento. Extensión de vida útil de obras. Seguridad de usuarios. Reducción de costos a largo plazo. Toma de decisiones basada en evidencia." },
+            { id: 28, category: "senador", title: "Diseño universal", description: "Normas ADA adaptadas para accesibilidad en leyes inclusivas.", theoretical: "El diseño universal busca crear entornos y productos utilizables por todas las personas sin necesidad de adaptación especializada, promoviendo la inclusión social.", normative: "Ley N° 29973 - Ley General de la Persona con Discapacidad, D.S. N° 002-2014-MIMP, ADA - Americans with Disabilities Act, Norma A.120 - Accesibilidad Universal.", benefits: "Inclusión total de personas con discapacidad. Mejor usabilidad para todos. Cumplimiento normativo internacional. Mejora de imagen institucional. Ciudades más humanas." },
+            { id: 29, category: "senador", title: "Guías de urbanismo participativo", description: "Manuales interactivos para consultas nacionales.", theoretical: "El urbanismo participativo involucra a los ciudadanos en la planificación de su entorno, garantizando que los proyectos respondan a las necesidades reales de la comunidad.", normative: "Ley N° 26300 - Ley de Participación y Control Vecinal, Ley N° 27972 - Ley Orgánica de Municipalidades, Ley N° 28296 - Patrimonio Cultural.", benefits: "Proyectos alineados con necesidades reales. Reducción de conflictos sociales. Legitimidad de intervenciones públicas. Fortalecimiento de la democracia. Mejora de la calidad de vida." },
+            { id: 30, category: "senador", title: "Modelos 3D de ciudades inteligentes", description: "Simulaciones digitales para visiones nacionales futuras.", theoretical: "Los modelos 3D de ciudades inteligentes permiten visualizar y simular el desarrollo urbano futuro, facilitando la planificación y comunicación de proyectos de smart cities.", normative: "Plan Nacional de Desarrollo Urbano, Agenda Digital Peruana, ISO 37120 - Indicadores de Ciudades Inteligentes, Smart City Framework.", benefits: "Mejor planificación urbana. Comunicación efectiva de proyectos. Atracción de inversión tecnológica. Optimización de servicios públicos. Mejora de calidad de vida." },
+            { id: 31, category: "senador", title: "Análisis de flujos peatonales", description: "Estudios de movilidad en espacios públicos nacionales.", theoretical: "El análisis de flujos peatonales estudia los patrones de desplazamiento a pie en espacios públicos, permitiendo optimizar el diseño de itinerarios peatonales seguros y eficientes.", normative: "Manual de Diseño de Vías Peatonales, NTE E.030 - Diseño Sismorresistente, Ley N° 27181 - Transporte y Seguridad Vial, Guía de Movilidad Activa.", benefits: "Seguridad peatón. Mejora de accesibilidad. Reducción de accidentes. Promoción de caminar. Mejora de espacios públicos." },
+            { id: 32, category: "senador", title: "Proyecto de ciclovías nacionales", description: "Redes interurbanas integradas de ciclovías.", theoretical: "Las ciclovías promueven la movilidad sostenible, reduciendo emisiones y congestionamiento vehicular mientras mejoran la salud pública a través del ejercicio físico.", normative: "Ley N° 27181 - Transporte y Seguridad Vial, Manual de Ciclovías, Plan Nacional de Movilidad Sostenible, Normativa de infraestructura cyclist.", benefits: "Reducción de emisiones. Mejora de salud pública. Descongestionamiento vehicular. Transporte inclusivo y económico. Desarrollo de economía local." },
+            { id: 33, category: "senador", title: "Gestión de residuos", description: "Sistemas integrados para políticas ambientales nacionales.", theoretical: "La gestión integral de residuos sólidos busca reducir, reutilizar, reciclar y disponer adecuadamente los residuos, minimizando el impacto ambiental y Promoting a circular economy.", normative: "Ley N° 27314 - Ley General de Residuos Sólidos, D.S. N° 057-2004-PCM, Plan Nacional de Gestión Integral de Residuos Sólidos, ODS 12 - Producción y consumo responsable.", benefits: "Protección del medio ambiente. Reducción de contaminación. Generación de empleo en reciclaje. Ahorro de recursos naturales. Mejora de salud pública." },
+
+            // Deputy Proposals (34-66)
+            { id: 34, category: "diputado", title: "Diseño de planos para sedes distritales", description: "Arquitectura funcional local para sedes partidarias.", theoretical: "El diseño de sedes distritales debe optimizar el uso del espacio para maximizar la atención ciudadana y funcionar como centros de encuentro político local.", normative: "Código de Planeamiento Integral, Normativa municipal de edificaciones, Ley N° 28059 - Inversión Descentralizada.", benefits: "Mejora de atención al ciudadano. Centros de capacitación política. Fortalecimiento de organización partidaria. Desarrollo de liderazgo local." },
+            { id: 35, category: "diputado", title: "Proyectos urbanísticos distritales", description: "Adaptación a terrenos locales para vivienda social distrital.", theoretical: "Los proyectos urbanísticos distritales adaptan los estándares nacionales a las condiciones locales, garantizando desarrollos habitacionales viables y sostenibles.", normative: "Plan de Desarrollo Urbano Local, D.S. N° 022-2016-VIVIENDA, Ley N° 29090 - Habilitaciones Urbanas.", benefits: "Vivienda adecuada para familias locales. Desarrollo urbano ordenado. Mejora de condiciones de vida." },
+            { id: 36, category: "diputado", title: "Impacto ambiental local", description: "Estudios EIA municipales para políticas urbanas locales.", theoretical: "Los estudios de impacto ambiental a nivel municipal identifican y mitigan los efectos de proyectos urbanos sobre el ambiente local.", normative: "Ley N° 27446 - SEIA, Ordenanzas municipales ambientales, D.S. N° 019-2009-MINAM.", benefits: "Protección del ambiente local. Cumplimiento normativo. Desarrollo sostenible distrital." },
+            { id: 37, category: "diputado", title: "Normativas de construcción distritales", description: "Cumplimiento municipal para plataformas distritales.", theoretical: "El cumplimiento de normativas de construcción garantiza edificaciones seguras y adecuadas a las condiciones del distrito.", normative: "RNE, Ordenanzas municipales de construcción, Código de Edificaciones.", benefits: "Edificaciones seguras. Calidad constructiva. Trámites ágiles." },
+            { id: 38, category: "diputado", title: "Renders 3D locales", description: "Visuales para mítines de infraestructura local como puentes peatonales.", theoretical: "Los renders 3D locales comunican efectivamente los proyectos de infraestructura a la ciudadanía durante campañas y audiencias públicas.", normative: "Estándares de visualización municipal, Manual de Participación Ciudadana.", benefits: "Comunicación efectiva. Aprobación ciudadana. Transparencia." },
+            { id: 39, category: "diputado", title: "Viabilidad técnica barrial", description: "Presupuestos locales para iniciativas de desarrollo barrial.", theoretical: "Los estudios de viabilidad técnica evalúan la sustentabilidad de proyectos barriales considerando aspectos económicos y sociales.", normative: "Sistema Nacional de Inversión Pública, Planes de Desarrollo Barrial.", benefits: "Proyectos viables. Optimización de recursos. Impacto social." },
+            { id: 40, category: "diputado", title: "Espacios públicos municipales", description: "Plazas comunitarias para propuestas de gobierno municipal.", theoretical: "Los espacios públicos municipales son fundamentales para la vida comunitaria y deben diseñarse para promover la integración social.", normative: "Manual de Espacios Públicos, Plan Maestro de Desarrollo Urbano.", benefits: "Integración social. Mejora de calidad de vida. Desarrollo comunitario." },
+            { id: 41, category: "diputado", title: "Auditoría de accesibilidad distrital", description: "Inspecciones in situ en distritos clave.", theoretical: "Las auditorías de accesibilidad identifican barreras en el espacio público distrital para proponer mejoras inclusivas.", normative: "Ley N° 29973, Norma A.120, Ordenanzas de accesibilidad municipal.", benefits: "Inclusión de personas con discapacidad. Ciudades más accesibles." },
+            { id: 42, category: "diputado", title: "Transporte sostenible barrial", description: "Soluciones de micro-movilidad en barrios.", theoretical: "Las soluciones de micro-movilidad promueven desplazamientos sostenibles dentro de los barrios, reduciendo el uso de vehículos motorizados.", normative: "Plan de Movilidad Sostenible, Normativa de ciclovías urbanas.", benefits: "Movilidad sostenible. Reducción de contaminación. Salud pública." },
+            { id: 43, category: "diputado", title: "Patrimonio cultural local", description: "Conservación histórica para informes técnicos locales.", theoretical: "La conservación del patrimonio cultural local preserva la identidad del distrito y promueve el turismo cultural.", normative: "Ley N° 28296, Registros de Patrimonio Cultural distrital.", benefits: "Preservación de identidad. Turismo cultural. Educación patrimonial." },
+            { id: 44, category: "diputado", title: "Mapas urbanos para campaña", description: "Cartografía local para materiales de campaña distrital.", theoretical: "La cartografía urbana local apoyo la planificación de campañas con información actualizada del territorio distrital.", normative: "Cartografía municipal, Sistema de Información Geográfica local.", benefits: "Planificación efectiva. Conocimiento territorial." },
+            { id: 45, category: "diputado", title: "Eficiencia energética distrital", description: "Ahorros locales para edificios públicos distritales.", theoretical: "La eficiencia energética en edificios públicos distritales reduce costos operativos y modelos de buenas prácticas para la ciudadanía.", normative: "Norma EM.010, Ordenanzas de eficiencia energética municipal.", benefits: "Ahorro de energía. Reducción de costos. Sostenibilidad." },
+            { id: 46, category: "diputado", title: "Densidad poblacional distrital", description: "Datos censales locales para zonificación.", theoretical: "El análisis de densidad poblacional distrital informa la zonificación y planificación urbana local.", normative: "Censo INEI, Planes de Desarrollo Urbano.", benefits: "Planificación urbana. Zonificación adecuada." },
+            { id: 47, category: "diputado", title: "Rehabilitación de barrios", description: "Renovaciones específicas para inclusión social local.", theoretical: "La rehabilitación de barrios mejora las condiciones de vida de comunidades vulnerables mediante intervenciones integrales.", normative: "Programas de Mejoramiento de Barrios, PNVR.", benefits: "Mejora de barrios. Inclusión social." },
+            { id: 48, category: "diputado", title: "Modelado BIM distrital", description: "Modelos colaborativos para infraestructuras electorales.", theoretical: "La metodología BIM permite gestionar eficientemente proyectos de infraestructura electoral a nivel distrital.", normative: "Plan BIM Peruano, Normativas de construcción municipal.", benefits: "Gestión eficiente. Reducción de costos." },
+            { id: 49, category: "diputado", title: "Riesgos sísmicos locales", description: "Zonas vulnerables distritales para propuestas locales.", theoretical: "La evaluación de riesgos sísmicos locales identifica zonas vulnerables para priorizar intervenciones de mitigación.", normative: "NTE E.030, Planes de Gestión de Riesgos.", benefits: "Seguridad sísmica. Planificación segura." },
+            { id: 50, category: "diputado", title: "Parques municipales", description: "Espacios recreativos para políticas ambientales municipales.", theoretical: "Los parques municipales constituyen áreas verdes fundamentales para la calidad de vida urbana y la sostenibilidad ambiental.", normative: "Manual de Espacios Verdes, Planeamiento urbano municipal.", benefits: "Áreas verdes. Salud pública. Ambiente." },
+            { id: 51, category: "diputado", title: "Movilidad urbana local", description: "Soluciones barriales para congestión local.", theoretical: "Las soluciones de movilidad urbana local abordan los problemas de congestión específicos de cada barrio.", normative: "Plan de Movilidad Urbana, Normativa de tránsito.", benefits: "Descongestionamiento. Mejor movilidad." },
+            { id: 52, category: "diputado", title: "Planes maestros distritales", description: "Visión local integrada para distritos.", theoretical: "Los planes maestros distritales establecen la visión de desarrollo a largo plazo de cada distrito.", normative: "Plan de Desarrollo Concertado, PDM.", benefits: "Desarrollo ordenado. Visión de futuro." },
+            { id: 53, category: "diputado", title: "Uso de suelo distrital", description: "Análisis parcela a parcela para reformas urbanas.", theoretical: "El análisis detallado del uso de suelo parcelario informa decisiones de zonificación y desarrollo urbano.", normative: "Planos de Zonificación, TUPA municipal.", benefits: "Zonificación apropiada. Desarrollo controlado." },
+            { id: 54, category: "diputado", title: "Instalaciones deportivas locales", description: "Canchas comunitarias para programas locales.", theoretical: "Las instalaciones deportivas comunitarias promueven la actividad física y el desarrollo deportivo local.", normative: "Normativa COPEJ, Programas deportivos municipales.", benefits: "Deporte masiva. Salud pública." },
+            { id: 55, category: "diputado", title: "Impacto vial local", description: "Análisis de tráfico vecinal para calles locales.", theoretical: "Los estudios de impacto vial local evalúan los efectos del tráfico en calles residenciales.", normative: "Estudios de Tráfico, Normativa vial municipal.", benefits: "Seguridad vial. Tranquilidad vecinal." },
+            { id: 56, category: "diputado", title: "Bioclimática distrital", description: "Adaptaciones climáticas para hogares distritales.", theoretical: "La arquitectura bioclimática adaptadas al clima local mejora el confort de las viviendas distritales.", normative: "Norma EM.010, Código de Construcción Sostenible.", benefits: "Confort térmico. Ahorro energético." },
+            { id: 57, category: "diputado", title: "Vivienda asequible local", description: "Modelos vecinales con enfoque de inclusión.", theoretical: "Los modelos de vivienda asequible local atienden las necesidades específicas de las familias del distrito.", normative: "Programas de Vivienda Social, Política habitacional.", benefits: "Vivienda digna. Inclusión social." },
+            { id: 58, category: "diputado", title: "Patrimonio arquitectónico distrital", description: "Edificios históricos para conservación.", theoretical: "La conservación del patrimonio arquitectónico distrital preserva la memoria histórica de cada localidad.", normative: "Inventario patrimonial, Ley N° 28296.", benefits: "Identidad local. Turismo." },
+            { id: 59, category: "diputado", title: "Centros comunitarios locales", description: "Hubs barriales para campañas locales.", theoretical: "Los centros comunitarios son espacios multifuncionales para actividades sociales y de gobierno vecinal.", normative: "Normativa de equipamiento, Programas sociales.", benefits: "Cohesión social. Servicios vecinales." },
+            { id: 60, category: "diputado", title: "Evaluación de infraestructuras locales", description: "Auditorías municipales para mejoras distritales.", theoretical: "Las auditorías técnicas evalúan el estado de infraestructuras municipales para priorizar inversiones.", normative: "Sistema Nacional de Inversión Pública.", benefits: "Infraestructura segura. Inversión optimizada." },
+            { id: 61, category: "diputado", title: "Diseño universal local", description: "Rampas y señales para accesibilidad local.", theoretical: "El diseño universal en espacios públicos locales garantiza accesibilidad para todas las personas.", normative: "Norma A.120, Ley N° 29973.", benefits: "Accesibilidad total. Inclusión." },
+            { id: 62, category: "diputado", title: "Urbanismo participativo distrital", description: "Talleres vecinales para guías de consulta.", theoretical: "El urbanismo participativo involucra a los vecinos en la planificación de su entorno.", normative: "Ley N° 26300, Mecanismos de participación.", benefits: "Proyectos legítimos. Cohesión social." },
+            { id: 63, category: "diputado", title: "Ciudades inteligentes locales", description: "Apps para distritos con modelos 3D.", theoretical: "Las tecnologías de smart cities mejoran la gestión municipal y los servicios al ciudadano.", normative: "Agenda Digital, Plan de Smart Cities.", benefits: "Gobierno digital. Servicios eficientes." },
+            { id: 64, category: "diputado", title: "Flujos peatonales distritales", description: "Calles peatonales para análisis de movilidad.", theoretical: "El análisis de flujos peatonales optimiza el diseño de calles y espacios peatonales seguros.", normative: "Manual de Espacios Peatonales.", benefits: "Seguridad peatón. Movilidad activa." },
+            { id: 65, category: "diputado", title: "Ciclovías urbanas", description: "Rutas barriales integradas a la red urbana.", theoretical: "Las ciclovías barriales integran la movilidad ciclista con el sistema de transporte urbano.", normative: "Plan de Ciclovías, Normativa cyclist.", benefits: "Movilidad sostenible. Salud." },
+            { id: 66, category: "diputado", title: "Gestión de residuos local", description: "Sistemas de reciclaje para distritos.", theoretical: "La gestión de residuos a nivel distrital promueve el reciclaje y la disposición adecuada de residuos.", normative: "Ley N° 27314, Ordenanzas municipales.", benefits: "Medio ambiente limpio. Reciclaje." },
+
+            // Andean Parliament Proposals (67-100)
+            { id: 67, category: "andino", title: "Proyectos urbanísticos binacionales", description: "Planes para fronteras andinas con integración regional.", theoretical: "Los proyectos urbanísticos binacionales promueven la integración territorial y el desarrollo económico de las zonas fronterizas andinas.", normative: "Acuerdos binacionales, Comunidad Andina, Tratados de libre comercio.", benefits: "Integración regional. Desarrollo fronterizo." },
+            { id: 68, category: "andino", title: "Impacto ambiental andino", description: "Estudios transfronterizos para políticas sostenibles.", theoretical: "Los estudios de impacto ambiental transfronterizos abordan los efectos ambientales que trascienden fronteras nacionales.", normative: "Convenio de Lulu, Ley N° 27446, Normativas ambientales andinas.", benefits: "Protección ambiental regional. Desarrollo sostenible." },
+            { id: 69, category: "andino", title: "Normativas de construcción andinas", description: "Estándares CAN para armonización andina.", theoretical: "La armonización de normativas de construcción facilita la integración económica y el comercio en la región andina.", normative: "Decisiones de la CAN, Reglamento Andino de Construcción.", benefits: "Integración económica. Facilitación comercial." },
+            { id: 70, category: "andino", title: "Renders 3D regionales", description: "Visuales para cumbres de infraestructuras como puertos.", theoretical: "Los renders 3D para cumbres regionales comunican proyectos de infraestructura binacional o regional.", normative: "Estándares de visualización, Protocolos de cumbres.", benefits: "Comunicación efectiva. Negociaciones regionales." },
+            { id: 71, category: "andino", title: "Viabilidad técnica andina", description: "Análisis binacional para desarrollo andino.", theoretical: "Los estudios de viabilidad técnica binacional evalúan proyectos de infraestructura regional.", normative: "Acuerdos de integración, Sistema Nacional de Inversión.", benefits: "Proyectos regionales viables. Integración." },
+            { id: 72, category: "andino", title: "Espacios públicos de integración", description: "Plazas fronterizas para propuestas culturales.", theoretical: "Los espacios públicos de integración promueven el encuentro cultural en zonas fronterizas.", normative: "Programas de integración, Convenios culturales.", benefits: "Integración cultural. Cohesión social." },
+            { id: 73, category: "andino", title: "Accesibilidad andina", description: "Inclusión transfronteriza en regiones andinas.", theoretical: "La accesibilidad transfronteriza garantiza la movilidad de personas con discapacidad en la región andina.", normative: "Ley N° 29973, Normativas andinas de inclusión.", benefits: "Inclusión regional. Derechos humanos." },
+            { id: 74, category: "andino", title: "Transporte sostenible andino", description: "GIS regional para corredores viales.", theoretical: "Los corredores viales regionales integran el transporte sostenible en la región andina.", normative: "Plan Vial Regional, Acuerdos binacionales.", benefits: "Conectividad regional. Comercio." },
+            { id: 75, category: "andino", title: "Patrimonio cultural andino", description: "UNESCO andino para informes técnicos.", theoretical: "El patrimonio cultural andino requiere estudios técnicos para su preservación y promoción.", normative: "Convenio UNESCO, Ley N° 28296, Declaratorias patrimoniales.", benefits: "Preservación patrimonial. Turismo cultural." },
+            { id: 76, category: "andino", title: "Mapas de integración", description: "Cartografía binacional para materiales de integración.", theoretical: "La cartografía binacional apoyo los procesos de integración territorial y planificación.", normative: "Cartografía oficial, Acuerdos limítrofes.", benefits: "Ordenamiento territorial. Integración." },
+            { id: 77, category: "andino", title: "Eficiencia energética andina", description: "Adaptaciones altimontañas para edificios.", theoretical: "La eficiencia energética en zonas de altura requiere adaptaciones específicas al clima andino.", normative: "Norma EM.010, Políticas de eficiencia energética.", benefits: "Ahorro energético. Sostenibilidad." },
+            { id: 78, category: "andino", title: "Densidad poblacional andina", description: "Migración regional para estrategias.", theoretical: "El análisis de densidad poblacional andina informa políticas de migración y desarrollo regional.", normative: "Censos nacionales, Estudios demográficos.", benefits: "Políticas de migración. Desarrollo." },
+            { id: 79, category: "andino", title: "Rehabilitación de barrios andinos", description: "Zonas altoandinas para inclusión social.", theoretical: "La rehabilitación de barrios altoandinos mejora las condiciones de vida en zonas de altura.", normative: "Programas de vivienda rural, Normativas de altura.", benefits: "Mejora de vidas. Inclusión social." },
+            { id: 80, category: "andino", title: "Modelado BIM andino", description: "Proyectos colaborativos para infraestructuras.", theoretical: "La metodología BIM facilita la colaboración en proyectos de infraestructura regional.", normative: "Plan BIM, Estándares internacionales BIM.", benefits: "Colaboración regional. Eficiencia." },
+            { id: 81, category: "andino", title: "Riesgos sísmicos andinos", description: "Zonas tectónicas para evaluaciones.", theoretical: "Las zonas sísmicas andinas requieren estudios especializados de riesgo sísmico.", normative: "NTE E.030, Normativas antisísmicas.", benefits: "Seguridad sísmica. Planificación." },
+            { id: 82, category: "andino", title: "Parques andinos", description: "Biodiversidad regional para áreas verdes.", theoretical: "Los parques andinos protegen la biodiversity única de la región andina.", normative: "Áreas Naturales Protegidas, Ley N° 26834.", benefits: "Conservación. Biodiversidad." },
+            { id: 83, category: "andino", title: "Movilidad urbana andina", description: "Rutas montañosas para congestión.", theoretical: "Las soluciones de movilidad andina abordan los desafíos de transporte en zonas montañosas.", normative: "Planes de movilidad, Normativas de montaña.", benefits: "Movilidad segura. Conectividad." },
+            { id: 84, category: "andino", title: "Planes maestros andinos", description: "Visión supranacional para regiones.", theoretical: "Los planes maestros andinos establecen visiones de desarrollo para la región supranacional.", normative: "Planificación regional andina, Agenda 2030.", benefits: "Desarrollo regional. Integración." },
+            { id: 85, category: "andino", title: "Uso de suelo andino", description: "Tierras fronterizas para análisis.", theoretical: "El análisis de uso de suelo en zonas fronterizas andinas informa la planificación territorial.", normative: "Ordenamiento territorial, Ley agraria.", benefits: "Uso adecuado del suelo. Desarrollo." },
+            { id: 86, category: "andino", title: "Deportes andinos", description: "Complejos binacionales para instalaciones.", theoretical: "Los complejos deportivos binacionales promueven la integración a través del deporte.", normative: "Programas deportivos, Acuerdos deportivos.", benefits: "Integración. Salud pública." },
+            { id: 87, category: "andino", title: "Impacto vial andino", description: "Conectividad regional para carreteras.", theoretical: "Los estudios de impacto vial andino evalúan proyectos de conectividad regional.", normative: "Normativas viales, Planes de conectividad.", benefits: "Conectividad. Comercio regional." },
+            { id: 88, category: "andino", title: "Bioclimática andina", description: "Climas variados para sostenibilidad.", theoretical: "La arquitectura bioclimática andina se adapta a la variedad de climas de la región.", normative: "Normas de construcción, Eficiencia energética.", benefits: "Sostenibilidad. Confort." },
+            { id: 89, category: "andino", title: "Vivienda andina", description: "Viviendas altoandinas para inclusión.", theoretical: "La vivienda altoandina requiere diseños adaptados a las condiciones de altura.", normative: "Normativas de vivienda rural, Programas habitacionales.", benefits: "Vivienda digna. Inclusión." },
+            { id: 90, category: "andino", title: "Patrimonio andino", description: "Sitios prehispánicos para conservación.", theoretical: "El patrimonio prehispánico andino requiere estudios técnicos para su conservación.", normative: "Ley N° 28296, Declaratorias UNESCO.", benefits: "Conservación. Cultura." },
+            { id: 91, category: "andino", title: "Centros comunitarios andinos", description: "Hubs transfronterizos para campañas.", theoretical: "Los centros comunitarios transfronterizos promueven la integración social regional.", normative: "Programas de integración, Cooperación transfronteriza.", benefits: "Integración. Servicios." },
+            { id: 92, category: "andino", title: "Infraestructuras andinas", description: "Auditorías regionales para evaluaciones.", theoretical: "Las auditorías de infraestructuras regionales evalúan el estado de obras binacionales.", normative: "Sistema Nacional de Inversión, Auditorías técnicas.", benefits: "Infraestructura segura." },
+            { id: 93, category: "andino", title: "Accesibilidad andina", description: "Terrenos irregulares para diseño universal.", theoretical: "El diseño universal en terrenos andinos irregulares presenta desafíos específicos.", normative: "Norma A.120, Diseño inclusivo.", benefits: "Accesibilidad. Inclusión." },
+            { id: 94, category: "andino", title: "Urbanismo participativo andino", description: "Consultas binacionales para guías.", theoretical: "El urbanismo participativo binacional involucra a comunidades fronterizas.", normative: "Mecanismos de participación, Convenios.", benefits: "Proyectos legítimos. Integración." },
+            { id: 95, category: "andino", title: "Ciudades inteligentes andinas", description: "Redes digitales regionales para modelos 3D.", theoretical: "Las ciudades inteligentes andinas integran tecnologías para gestión urbana regional.", normative: "Agenda Digital, Smart Cities.", benefits: "Gestión eficiente. Tecnología." },
+            { id: 96, category: "andino", title: "Flujos peatonales andinos", description: "Senderos montañosos para análisis.", theoretical: "Los flujos peatonales en zonas andinas requieren análisis específicos de senderos.", normative: "Normativas de senderos, Senderismo.", benefits: "Turismo. Seguridad." },
+            { id: 97, category: "andino", title: "Ciclovías andinas", description: "Rutas ecológicas integradas a la red.", theoretical: "Las ciclovías andinas integran la movilidad ciclista en corredores turísticos.", normative: "Plan de ciclovías, Normativas turísticas.", benefits: "Turismo. Sostenibilidad." },
+            { id: 98, category: "andino", title: "Gestión de residuos andina", description: "Sistemas montañosos para consultoría.", theoretical: "La gestión de residuos en zonas andinas requiere soluciones adaptadas a la geografía.", normative: "Ley N° 27314, Ordenanzas regionales.", benefits: "Medio ambiente. Salud." },
+            { id: 99, category: "andino", title: "Cambio climático andino", description: "Impactos glaciares para informes.", theoretical: "El cambio climático tiene impactos específicos en los ecosistemas andinos y glaciares.", normative: "Ley N° 28611, Política climática nacional.", benefits: "Adaptación. Mitigación." },
+            { id: 100, category: "andino", title: "Smart cities andinas", description: "Innovación regional para proyecto integral.", theoretical: "Las smart cities andinas integran tecnologías para el desarrollo urbano sostenible regional.", normative: "Plan de Desarrollo Digital, ODS 11.", benefits: "Desarrollo innovador. Sostenibilidad." }
+        ];
+
+        // State
+        let selectedProposals = new Set();
+        let currentModalProposal = null;
+
+        // Category labels
+        const categoryLabels = {
+            senator: "Senador",
+            deputado: "Diputado",
+            andino: "Parlamento Andino"
+        };
+
+        const categoryClasses = {
+            senator: "category-senador",
+            deputado: "category-diputado",
+            andino: "category-andino"
+        };
+
+        // DOM Elements
+        const modal = document.getElementById('modal');
+        const floatingBar = document.getElementById('floatingBar');
+        const selectedCount = document.getElementById('selectedCount');
+
+        // Render proposals
+        function renderProposals(filter = "all", searchTerm = "") {
+            const grid = document.getElementById("proposalsGrid");
+            const noResults = document.getElementById("noResults");
+
+            let filteredProposals = proposals;
+
+            // Apply filter
+            if (filter !== "all") {
+                filteredProposals = filteredProposals.filter(p => p.category === filter);
+            }
+
+            // Apply search
+            if (searchTerm) {
+                const term = searchTerm.toLowerCase();
+                filteredProposals = filteredProposals.filter(p =>
+                    p.title.toLowerCase().includes(term) ||
+                    p.description.toLowerCase().includes(term)
+                );
+            }
+
+            // Show/hide no results message
+            if (filteredProposals.length === 0) {
+                grid.innerHTML = "";
+                noResults.classList.remove("hidden");
+                return;
+            }
+
+            noResults.classList.add("hidden");
+
+            // Render cards
+            grid.innerHTML = filteredProposals.map((proposal, index) => `
+                <div class="proposal-card bg-white rounded-lg p-6 shadow-md border border-gray-100 fade-in ${selectedProposals.has(proposal.id) ? 'selected' : ''}"
+                     style="animation-delay: ${index * 0.05}s"
+                     onclick="openModal(${proposal.id})">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="px-3 py-1 rounded-full text-xs font-medium ${categoryClasses[proposal.category]}">
+                            ${categoryLabels[proposal.category]}
+                        </span>
+                        <div class="custom-checkbox ${selectedProposals.has(proposal.id) ? 'checked' : ''}" onclick="event.stopPropagation(); toggleSelection(${proposal.id})">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <h4 class="text-lg font-semibold text-gray-900 mb-2">${proposal.title}</h4>
+                    <p class="text-gray-600 text-sm">${proposal.description}</p>
+                </div>
+            `).join("");
+        }
+
+        // Filter buttons
+        const filterBtns = document.querySelectorAll(".filter-btn");
+        filterBtns.forEach(btn => {
+            btn.addEventListener("click", () => {
+                filterBtns.forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
+                const filter = btn.dataset.filter;
+                const searchTerm = document.getElementById("searchInput").value;
+                renderProposals(filter, searchTerm);
+            });
+        });
+
+        // Search input
+        const searchInput = document.getElementById("searchInput");
+        searchInput.addEventListener("input", (e) => {
+            const activeFilter = document.querySelector(".filter-btn.active").dataset.filter;
+            renderProposals(activeFilter, e.target.value);
+        });
+
+        // Toggle selection
+        function toggleSelection(id) {
+            if (selectedProposals.has(id)) {
+                selectedProposals.delete(id);
+            } else {
+                selectedProposals.add(id);
+            }
+            updateFloatingBar();
+            const activeFilter = document.querySelector(".filter-btn.active").dataset.filter;
+            const searchTerm = document.getElementById("searchInput").value;
+            renderProposals(activeFilter, searchTerm);
+        }
+
+        // Update floating bar
+        function updateFloatingBar() {
+            const count = selectedProposals.size;
+            selectedCount.textContent = `${count} propuesta${count !== 1 ? 's' : ''} seleccionada${count !== 1 ? 's' : ''}`;
+            if (count > 0) {
+                floatingBar.classList.add('active');
+            } else {
+                floatingBar.classList.remove('active');
+            }
+        }
+
+        // Open modal
+        function openModal(id) {
+            const proposal = proposals.find(p => p.id === id);
+            if (!proposal) return;
+
+            currentModalProposal = proposal;
+
+            document.getElementById('modalCategory').textContent = categoryLabels[proposal.category];
+            document.getElementById('modalCategory').className = `px-3 py-1 rounded-full text-xs font-medium ${categoryClasses[proposal.category]}`;
+            document.getElementById('modalTitle').textContent = proposal.title;
+            document.getElementById('modalDescription').textContent = proposal.description;
+            document.getElementById('modalTheoretical').textContent = proposal.theoretical || 'Información teórica en desarrollo.';
+            document.getElementById('modalNormative').textContent = proposal.normative || 'Marco normativo en desarrollo.';
+            document.getElementById('modalBenefits').textContent = proposal.benefits || 'Beneficios en desarrollo.';
+
+            updateModalCheckbox();
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Close modal
+        function closeModal() {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+            currentModalProposal = null;
+        }
+
+        // Update modal checkbox
+        function updateModalCheckbox() {
+            const checkbox = document.getElementById('modalCheckbox');
+            const selectionText = document.getElementById('selectionText');
+            if (currentModalProposal && selectedProposals.has(currentModalProposal.id)) {
+                checkbox.classList.add('checked');
+                selectionText.textContent = 'Propuesta seleccionada';
+            } else {
+                checkbox.classList.remove('checked');
+                selectionText.textContent = 'Seleccionar esta propuesta';
+            }
+        }
+
+        // Modal events
+        document.getElementById('closeModal').addEventListener('click', closeModal);
+        document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+        document.getElementById('toggleSelection').addEventListener('click', () => {
+            if (currentModalProposal) {
+                toggleSelection(currentModalProposal.id);
+                updateModalCheckbox();
+            }
+        });
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.classList.contains('active')) {
+                closeModal();
+            }
+        });
+
+        // WhatsApp integration
+        document.getElementById('sendWhatsApp').addEventListener('click', () => {
+            if (selectedProposals.size === 0) {
+                alert('Por favor selecciona al menos una propuesta');
+                return;
+            }
+
+            const selectedProposalsList = proposals.filter(p => selectedProposals.has(p.id));
+            let message = 'Hola, me interesa generar una Propuesta General basada en los siguientes puntos:\n\n';
+
+            selectedProposalsList.forEach((proposal, index) => {
+                message += `${index + 1}. ${proposal.title}\n`;
+            });
+
+            message += '\nQuedo atento a su respuesta.';
+
+            const encodedMessage = encodeURIComponent(message);
+            const whatsappUrl = `https://wa.me/51980736087?text=${encodedMessage}`;
+            window.open(whatsappUrl, '_blank');
+        });
+
+        // Clear selection
+        document.getElementById('clearSelection').addEventListener('click', () => {
+            selectedProposals.clear();
+            updateFloatingBar();
+            const activeFilter = document.querySelector(".filter-btn.active").dataset.filter;
+            const searchTerm = document.getElementById("searchInput").value;
+            renderProposals(activeFilter, searchTerm);
+        });
+
+        // Initial render
+        renderProposals();
+    </script>
+
+<script>
+/**
+ * Iframe 元素高亮注入脚本
+ * 需要在目标网站中引入此脚本来支持跨域 iframe 高亮功能
+ *
+ * 使用方法：
+ * 1. 将此脚本添加到目标网站的 HTML 中
+ * 2. 或通过浏览器扩展、用户脚本等方式注入
+ */
+
+(function () {
+  "use strict";
+
+  // 检查是否在 iframe 中
+  if (window.self === window.top) {
+    return; // 不在 iframe 中，不执行
+  }
+
+  // 检查是否已经初始化过
+  if (window.__iframeHighlightInitialized) {
+    return;
+  }
+  window.__iframeHighlightInitialized = true;
+  console.log("Iframe 高亮脚本已加载");
+
+  // 创建高亮覆盖层
+  var overlay = document.createElement("div");
+  overlay.id = "iframe-highlight-overlay";
+  overlay.style.cssText = "\n    position: fixed;\n    top: 0;\n    left: 0;\n    width: 100vw;\n    height: 100vh;\n    pointer-events: none;\n    z-index: 999999;\n    overflow: hidden;\n  ";
+
+  // 创建悬停高亮框（虚线边框）
+  var highlightBox = document.createElement("div");
+  highlightBox.id = "iframe-highlight-box";
+  highlightBox.style.cssText = "\n    position: absolute;\n    border: 2px dashed #007AFF;\n    background: rgba(0, 122, 255, 0.08);\n    pointer-events: none;\n    display: none;\n    transition: all 0.1s ease;\n    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8);\n    border-radius: 2px;\n  ";
+
+  // 创建选中节点的常驻高亮框（实线边框）
+  var selectedBox = document.createElement("div");
+  selectedBox.id = "iframe-selected-box";
+  selectedBox.style.cssText = "\n    position: absolute;\n    border: 2px solid #007AFF;\n    pointer-events: none;\n    display: none;\n    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.9), 0 0 8px rgba(255, 107, 53, 0.4);\n    border-radius: 2px;\n    z-index: 1000000;\n  ";
+
+  // 创建悬停标签显示
+  var tagLabel = document.createElement("div");
+  tagLabel.id = "iframe-tag-label";
+  tagLabel.style.cssText = "\n    position: absolute;\n    background: #007AFF;\n    color: white;\n    padding: 2px 6px;\n    font-size: 11px;\n    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;\n    border-radius: 2px;\n    pointer-events: none;\n    display: none;\n    white-space: nowrap;\n    z-index: 1000001;\n    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);\n    font-weight: 500;\n  ";
+
+  // 创建选中节点标签
+  var selectedLabel = document.createElement("div");
+  selectedLabel.id = "iframe-selected-label";
+  selectedLabel.style.cssText = "\n    position: absolute;\n    background: #007AFF;\n    color: white;\n    padding: 3px 8px;\n    font-size: 11px;\n    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;\n    border-radius: 3px;\n    pointer-events: none;\n    display: none;\n    white-space: nowrap;\n    z-index: 1000002;\n    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);\n    font-weight: 600;\n  ";
+  overlay.appendChild(highlightBox);
+  overlay.appendChild(selectedBox);
+  overlay.appendChild(tagLabel);
+  overlay.appendChild(selectedLabel);
+  document.body.appendChild(overlay);
+
+  // 存储当前选中的元素
+  var selectedElement = null;
+  var highlightEnabled = false;
+
+  // 更新选中元素的高亮显示
+  function updateSelectedHighlight(element) {
+    console.log("updateSelectedHighlight called with:", element);
+    if (!element) {
+      selectedBox.style.display = "none";
+      selectedLabel.style.display = "none";
+      selectedElement = null;
+      console.log("Cleared selected highlight");
+      return;
+    }
+    selectedElement = element;
+    var rect = element.getBoundingClientRect();
+    console.log("Selected element rect:", rect);
+
+    // 更新选中高亮框位置
+    selectedBox.style.display = "block";
+    selectedBox.style.left = "".concat(rect.left - 2, "px");
+    selectedBox.style.top = "".concat(rect.top - 2, "px");
+    selectedBox.style.width = "".concat(rect.width + 4, "px");
+    selectedBox.style.height = "".concat(rect.height + 4, "px");
+
+    // 更新选中标签位置和内容
+    selectedLabel.style.display = "block";
+    selectedLabel.textContent = "\u2713 <".concat(element.tagName.toLowerCase(), ">");
+
+    // 计算标签位置，确保不超出视窗
+    var labelTop = rect.top - 28;
+    var labelLeft = rect.left;
+
+    // 如果标签会超出顶部，显示在元素下方
+    if (labelTop < 5) {
+      labelTop = rect.bottom + 5;
+    }
+
+    // 如果标签会超出右侧，向左调整
+    var labelWidth = selectedLabel.offsetWidth || 100; // 预估宽度
+    if (labelLeft + labelWidth > window.innerWidth - 10) {
+      labelLeft = window.innerWidth - labelWidth - 10;
+    }
+    selectedLabel.style.left = "".concat(Math.max(5, labelLeft), "px");
+    selectedLabel.style.top = "".concat(labelTop, "px");
+    console.log("Selected highlight positioned at:", {
+      left: selectedBox.style.left,
+      top: selectedBox.style.top,
+      width: selectedBox.style.width,
+      height: selectedBox.style.height
+    });
+  }
+  function getElementSelector(element) {
+    if (!(element instanceof Element)) throw new Error('Argument must be a DOM element');
+    var segments = [];
+    var current = element;
+    while (current !== document.documentElement) {
+      var selector = '';
+      // 优先检查唯一ID
+      if (current.id && document.querySelectorAll("#".concat(current.id)).length === 1) {
+        segments.unshift("#".concat(current.id));
+        break; // ID唯一，无需继续向上
+      }
+
+      // 生成类名选择器（取第一个有效类名）
+      var classes = Array.from(current.classList).filter(function (c) {
+        return !c.startsWith('js-');
+      });
+      var className = classes.length > 0 ? ".".concat(classes[0]) : '';
+
+      // 生成位置索引（nth-child）
+      var tag = current.tagName.toLowerCase();
+      if (!className) {
+        var siblings = Array.from(current.parentNode.children);
+        var index = siblings.findIndex(function (el) {
+          return el === current;
+        }) + 1;
+        selector = "".concat(tag, ":nth-child(").concat(index, ")");
+      } else {
+        selector = className;
+      }
+      segments.unshift(selector);
+      current = current.parentElement;
+    }
+
+    // 处理根元素
+    if (current === document.documentElement) {
+      segments.unshift('html');
+    }
+    return segments.join(' > ');
+  }
+
+  // 获取元素文本内容
+  function getElementText(element) {
+    var _element$textContent;
+    if (element.tagName === "INPUT") {
+      return element.value || element.placeholder || "";
+    }
+    if (element.tagName === "TEXTAREA") {
+      return element.value || element.placeholder || "";
+    }
+    var text = ((_element$textContent = element.textContent) === null || _element$textContent === void 0 ? void 0 : _element$textContent.trim()) || "";
+    return text.length > 50 ? text.substring(0, 50) + "..." : text;
+  }
+
+  // 获取元素属性信息
+  function getElementAttributes(element) {
+    var attrs = {};
+    for (var i = 0; i < element.attributes.length; i++) {
+      var attr = element.attributes[i];
+      attrs[attr.name] = attr.value;
+    }
+    return attrs;
+  }
+
+  // 鼠标悬停事件处理
+  function handleMouseOver(e) {
+    if (!highlightEnabled) return;
+    var target = e.target;
+    if (!target || target === overlay || target === highlightBox || target === tagLabel || target === selectedBox || target === selectedLabel) {
+      return;
+    }
+
+    // 避免高亮 html 和 body 元素
+    if (target === document.documentElement || target === document.body) {
+      return;
+    }
+
+    // 如果是已选中的元素，不显示悬停高亮
+    if (target === selectedElement) {
+      highlightBox.style.display = "none";
+      tagLabel.style.display = "none";
+      return;
+    }
+    var rect = target.getBoundingClientRect();
+    var selector = getElementSelector(target);
+    var text = getElementText(target);
+    var attributes = getElementAttributes(target);
+
+    // 更新悬停高亮框位置
+    highlightBox.style.display = "block";
+    highlightBox.style.left = "".concat(rect.left - 2, "px");
+    highlightBox.style.top = "".concat(rect.top - 2, "px");
+    highlightBox.style.width = "".concat(rect.width + 4, "px");
+    highlightBox.style.height = "".concat(rect.height + 4, "px");
+
+    // 更新标签位置和内容
+    tagLabel.style.display = "block";
+    tagLabel.textContent = "<".concat(target.tagName.toLowerCase(), ">");
+
+    // 计算标签位置，确保不超出视窗
+    var labelTop = rect.top - 22;
+    var labelLeft = rect.left;
+
+    // 如果标签会超出顶部，显示在元素下方
+    if (labelTop < 0) {
+      labelTop = rect.bottom + 5;
+    }
+
+    // 如果标签会超出右侧，向左调整
+    if (labelLeft + tagLabel.offsetWidth > window.innerWidth) {
+      labelLeft = window.innerWidth - tagLabel.offsetWidth - 5;
+    }
+    tagLabel.style.left = "".concat(Math.max(0, labelLeft), "px");
+    tagLabel.style.top = "".concat(labelTop, "px");
+
+    // 发送消息到父窗口
+    var elementInfo = {
+      tagName: target.tagName.toLowerCase(),
+      rect: {
+        left: rect.left,
+        top: rect.top,
+        right: rect.right,
+        bottom: rect.bottom,
+        width: rect.width,
+        height: rect.height,
+        x: rect.x,
+        y: rect.y
+      },
+      selector: selector,
+      text: text,
+      attributes: attributes,
+      url: window.location.href,
+      path: window.location.pathname,
+      timestamp: Date.now()
+    };
+    try {
+      window.parent.postMessage({
+        type: "iframe-element-hover",
+        data: elementInfo,
+        source: "iframe-highlight-injector"
+      }, "*");
+    } catch (error) {
+      console.warn("无法发送消息到父窗口:", error);
+    }
+  }
+
+  // 鼠标离开事件处理
+  function handleMouseOut(e) {
+    if (!highlightEnabled) return;
+    var relatedTarget = e.relatedTarget;
+
+    // 如果鼠标移动到高亮相关元素上，不隐藏高亮
+    if (relatedTarget && (relatedTarget === highlightBox || relatedTarget === tagLabel || relatedTarget === overlay || relatedTarget === selectedBox || relatedTarget === selectedLabel)) {
+      return;
+    }
+    highlightBox.style.display = "none";
+    tagLabel.style.display = "none";
+    try {
+      window.parent.postMessage({
+        type: "iframe-element-hover",
+        data: null,
+        source: "iframe-highlight-injector"
+      }, "*");
+    } catch (error) {
+      console.warn("无法发送消息到父窗口:", error);
+    }
+  }
+
+  // 点击事件处理
+  function handleClick(e) {
+    var target = e.target;
+    if (!target || target === overlay || target === highlightBox || target === tagLabel || target === selectedBox || target === selectedLabel) {
+      return;
+    }
+
+    // 避免处理 html 和 body 元素
+    if (target === document.documentElement || target === document.body) {
+      return;
+    }
+
+    // 检查是否是交互元素，这些元素需要保留默认行为
+    var isInteractiveElement = ['input', 'textarea', 'select', 'button', 'a'].includes(target.tagName.toLowerCase());
+
+    // 如果高亮功能启用，对于非交互元素阻止默认行为和事件传播
+    if (highlightEnabled) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    var rect = target.getBoundingClientRect();
+    var selector = getElementSelector(target);
+    var text = getElementText(target);
+    var attributes = getElementAttributes(target);
+    console.log("Element clicked:", {
+      tagName: target.tagName,
+      selector: selector,
+      rect: rect
+    });
+
+    // 立即更新选中高亮
+    updateSelectedHighlight(target);
+
+    // 隐藏悬停高亮，因为现在是选中状态
+    highlightBox.style.display = "none";
+    tagLabel.style.display = "none";
+    var elementInfo = {
+      tagName: target.tagName.toLowerCase(),
+      rect: {
+        left: rect.left,
+        top: rect.top,
+        right: rect.right,
+        bottom: rect.bottom,
+        width: rect.width,
+        height: rect.height,
+        x: rect.x,
+        y: rect.y
+      },
+      selector: selector,
+      text: text,
+      attributes: attributes,
+      url: window.location.href,
+      path: window.location.pathname,
+      timestamp: Date.now()
+    };
+    try {
+      window.parent.postMessage({
+        type: "iframe-element-click",
+        data: elementInfo,
+        source: "iframe-highlight-injector"
+      }, "*");
+    } catch (error) {
+      console.warn("无法发送消息到父窗口:", error);
+    }
+  }
+
+  // 监听来自父窗口的消息
+  function handleParentMessage(event) {
+    console.log("Received message from parent:", event.data);
+    if (event.data.type === "iframe-highlight-toggle") {
+      var enabled = event.data.enabled;
+      console.log("Highlight toggle:", enabled);
+      if (enabled) {
+        enableHighlight();
+      } else {
+        disableHighlight();
+      }
+    } else if (event.data.type === "enable-iframe-highlight") {
+      console.log("Enable iframe highlight");
+      enableHighlight();
+    } else if (event.data.type === "disable-iframe-highlight") {
+      console.log("Disable iframe highlight");
+      disableHighlight();
+    } else if (event.data.type === "toggle-iframe-highlight") {
+      var _enabled = event.data.enabled !== undefined ? event.data.enabled : !highlightEnabled;
+      console.log("Toggle iframe highlight to:", _enabled);
+      if (_enabled) {
+        enableHighlight();
+      } else {
+        disableHighlight();
+      }
+    } else if (event.data.type === "update-selected-element") {
+      var selector = event.data.selector;
+      console.log("Update selected element with selector:", selector);
+      if (selector) {
+        try {
+          var element = document.querySelector(selector);
+          console.log("Found element by selector:", element);
+          updateSelectedHighlight(element);
+        } catch (error) {
+          console.warn("Failed to select element:", error);
+          updateSelectedHighlight(null);
+        }
+      } else {
+        updateSelectedHighlight(null);
+      }
+    } else if (event.data.type === "clear-selected-element") {
+      console.log("Clear selected element");
+      updateSelectedHighlight(null);
+    }
+  }
+
+  // 启用高亮功能
+  function enableHighlight() {
+    console.log("Enabling highlight");
+    document.addEventListener("mouseover", handleMouseOver, true);
+    document.addEventListener("mouseout", handleMouseOut, true);
+    document.addEventListener("click", handleClick, true);
+    highlightEnabled = true;
+    overlay.style.display = "block";
+  }
+
+  // 禁用高亮功能
+  function disableHighlight() {
+    console.log("Disabling highlight");
+    highlightEnabled = false;
+    // 保持事件监听器，但通过 highlightEnabled 变量控制行为
+    // 这样可以保留选中状态的显示
+    highlightBox.style.display = "none";
+    tagLabel.style.display = "none";
+    // 不隐藏 selectedBox 和 selectedLabel，保留选中状态
+  }
+
+  // 完全禁用高亮功能（移除所有监听器）
+  function fullyDisableHighlight() {
+    console.log("Fully disabling highlight");
+    highlightEnabled = false;
+    document.removeEventListener("mouseover", handleMouseOver, true);
+    document.removeEventListener("mouseout", handleMouseOut, true);
+    document.removeEventListener("click", handleClick, true);
+    overlay.style.display = "none";
+    highlightBox.style.display = "none";
+    tagLabel.style.display = "none";
+    selectedBox.style.display = "none";
+    selectedLabel.style.display = "none";
+  }
+
+  // 添加事件监听
+  enableHighlight();
+  window.addEventListener("message", handleParentMessage);
+
+  // 暴露全局函数供外部调用
+  window.__iframeHighlightControl = {
+    enable: enableHighlight,
+    disable: disableHighlight,
+    fullyDisable: fullyDisableHighlight,
+    isEnabled: function isEnabled() {
+      return highlightEnabled;
+    },
+    getSelectedElement: function getSelectedElement() {
+      return selectedElement;
+    },
+    updateSelected: updateSelectedHighlight,
+    // 通过消息发送开关控制
+    sendToggleMessage: function sendToggleMessage(enabled) {
+      window.parent.postMessage({
+        type: 'iframe-highlight-status',
+        enabled: enabled || highlightEnabled,
+        source: 'iframe-highlight-injector'
+      }, '*');
+    }
+  };
+
+  // 通知父窗口脚本已加载
+  try {
+    window.parent.postMessage({
+      type: "iframe-highlight-ready",
+      data: {
+        url: window.location.href,
+        userAgent: navigator.userAgent,
+        timestamp: Date.now()
+      },
+      source: "iframe-highlight-injector"
+    }, "*");
+  } catch (error) {
+    console.warn("无法发送就绪消息到父窗口:", error);
+  }
+
+  // 清理函数
+  window.__iframeHighlightCleanup = function () {
+    fullyDisableHighlight();
+    window.removeEventListener("message", handleParentMessage);
+    if (overlay.parentElement) {
+      overlay.parentElement.removeChild(overlay);
+    }
+    delete window.__iframeHighlightInitialized;
+    delete window.__iframeHighlightCleanup;
+  };
+})();
+
+</script>
+</body>
+</html>
